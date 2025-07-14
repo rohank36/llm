@@ -1,0 +1,212 @@
+10795073 parameters
+starting training...
+
+
+--------------------------------------------------------------
+step 0: train loss 4.4980, val loss 4.5034
+gpu memory allocated: 49.68 mb, gpu memory reserved: 666.00 mb
+
+RxtiDLvRkEPW!aqaEst!owgo.qR.cwCNOWQWHNTd hitwMhrt'oTL?$3wQcGCbEiuKxhUQFeuvcRfmMl:ck.hmjQ!SKKzR.rrM.vPcg
+Qb'F3cdL&CbGz w3elRX'ogQ.jnbGWUhawh?ZtwGsY cqEwsUG-wkmsI,q,ZN&vDAowu;stB'NN:w-gECkv!S-TrMboTuhHMEjCBVX!hXOaAWZ;u,3U&J?N,tzvVtK3GzpC3iL;l j,o
+TI$bx
+
+
+--------------------------------------------------------------
+step 500: train loss 1.9412, val loss 2.0405
+gpu memory allocated: 188.85 mb, gpu memory reserved: 1280.00 mb
+
+Ithyk and.
+
+PARDIF:
+I
+GAREDO:
+
+A all my arand it of witurs you scany.
+
+QUEN EEN BETHUS:
+God my chorrd, Hend, the god ward
+Theare far carannt and your estou frouse.
+Now Oxf ORK:
+Thave have the not dey dare nothen with.
+QUEEN EENVIZARCENTI:
+He wo! Whou
+
+
+--------------------------------------------------------------
+step 1000: train loss 1.6235, val loss 1.8004
+gpu memory allocated: 188.10 mb, gpu memory reserved: 1282.00 mb
+
+This fell lord;
+Let I shield all warl humblet not my this heard.
+And Be servist thee Will his mone of hearther far,
+And whrh witte enever-pray had.
+
+CALUS:
+A was you trucke for seeds my life my go.
+
+First Grove EGBR:
+The know horse was truef.
+
+COMILL
+
+
+--------------------------------------------------------------
+step 1500: train loss 1.4709, val loss 1.6795
+gpu memory allocated: 188.97 mb, gpu memory reserved: 1282.00 mb
+
+It's not wish prect timble wo
+toughts trived Parina, then swill; if you art your chall.
+
+HASTINGS:
+The good dreath. Margue! You both; and as woent this ride.
+
+Julite:
+O, it so,--mine less
+COTESBY:
+Mone, if my husbarch, of husband me,
+Your have such s
+
+
+--------------------------------------------------------------
+step 2000: train loss 1.3818, val loss 1.6115
+gpu memory allocated: 190.22 mb, gpu memory reserved: 1282.00 mb
+
+gravess
+But with the seatl'd of this blood come,
+The ose and take me of royer doth upon rosone,
+Be goods dies my worsehalf some to the dead.
+
+BENVOLIO:
+What, I will do atter an thee, you might,
+If do you how not play thou art your honours.
+
+QUEEN ELI
+
+
+--------------------------------------------------------------
+step 2500: train loss 1.3184, val loss 1.5588
+gpu memory allocated: 187.97 mb, gpu memory reserved: 1282.00 mb
+
+Both from the fit, you that you are smore.
+Then I resign it, good lord, I see your friars,
+My lodge hath the carew 'em contreition: then, sir,
+My lord.
+
+DUKE VINCENTIO:
+No, I will find of ceize indeed, thine bide
+In her people it thing
+And is.
+
+DUKE
+
+
+--------------------------------------------------------------
+step 3000: train loss 1.2681, val loss 1.5318
+gpu memory allocated: 188.66 mb, gpu memory reserved: 1282.00 mb
+
+LADY ANNE:
+Troth, what's he small his tongue?
+
+KING EDWARD IV:
+Hark it is my request, 'twere suffrance borrow his moudght
+We may be unkeep by the mother bastard's stands:
+Because myself this baggar gistle mouths;
+And we all to hell eat his greet soul
+
+
+--------------------------------------------------------------
+step 3500: train loss 1.2199, val loss 1.5068
+gpu memory allocated: 189.16 mb, gpu memory reserved: 1282.00 mb
+
+shall had defined him betwixt all be by bloody:
+Which,' would they shall not flatter a wife,
+And with their devil possign should remove
+Against themselves, dearly of themselves.
+
+GRUMIO:
+Now, sirrah, you out no;
+In absence, so so know against the ear
+
+
+--------------------------------------------------------------
+step 4000: train loss 1.1852, val loss 1.4971
+gpu memory allocated: 188.85 mb, gpu memory reserved: 1282.00 mb
+
+Madam:
+Do not ever way: your heart dignified,
+For it day, comfort, but a traitor; I'll accuse
+My life is a vow, and find out: and take your mind
+For that you may well, but I did leave thee with weeds,
+Till you friends of thy most ungracious.
+
+DUKE VI
+
+
+--------------------------------------------------------------
+step 4500: train loss 1.1466, val loss 1.4965
+gpu memory allocated: 188.10 mb, gpu memory reserved: 1282.00 mb
+
+I bid some of this: I'll have me took thee sir.
+
+Second Citizen:
+Thou hast show'dst buy.
+
+Second Citizen:
+By this seat on this: they have made gone to understand,
+England thus I shall be as forewell: if not Margaret's
+Matter sevent, yea, a permiss, a
+
+
+--------------------------------------------------------------
+step 4999: train loss 1.1111, val loss 1.4888
+gpu memory allocated: 187.97 mb, gpu memory reserved: 1282.00 mb
+
+battle fear,
+Why he that, slept too, like the relenting heart!
+
+CLIFFORD:
+Well, Clifford, let's not the prince publicly.
+
+WARWICK:
+Nay, let thee by, stand him obey'd,
+Yet be still'd.
+
+KING HENRY VI:
+Ah, God! for shike as he
+That shall without that ha
+
+
+--------------------------------------------------------------
+training done.
+train time: 159.9563 minutes
+max gpu memory allocated during training: 1066.72 mb
+max gpu memory reserved during training: 1282.00 mb
+
+
+--------------------------------------------------------------
+
+COMINIUS:
+Let's death shall steal the house of Signior,
+All well I say.
+
+Second Citizen:
+In this was he shall be absent.
+
+CORIOLANUS:
+I have no knot:
+Out of the rock!
+
+VOLUMNIA:
+I come to the Tum--
+
+Third Citizens:
+And if I think it: for else, return me by the house of you
+Will I died, with the Lady Via as as it.
+
+First Senator:
+Now, he is that a man to the world
+That pass'd money's husband: but the racely
+The inutomary srettle belome and statues; mills it be boy.
+
+Second Murderer:
+I am committe

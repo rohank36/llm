@@ -1,6 +1,8 @@
 from math import sqrt
 import torch
 import datetime
+import time
+from torch.utils.checkpoint import checkpoint_sequential
 
 ### Hyperparameters ############################
 B = 64 # batch size
@@ -61,19 +63,23 @@ class Model(torch.nn.Module):
         self.position_embedding_table = torch.nn.Embedding(T, d)# pos embedding lookup table
 
     def forward(self,idx,targets=None):
+        B_cur,T_cur = idx.shape
         tok_emb = self.token_embedding_table(idx) # get embedding for each token in idx [B,T]
         # tok emb [B,T,d]
-        pos_emb = self.position_embedding_table(torch.arange(T)) # get embedding for each token position in idx [B,T]
+        pos_emb = self.position_embedding_table(torch.arange(T_cur,device=device)) # get embedding for each token position in idx [B,T]
         # pos emb [T,d]
         X = tok_emb + pos_emb # [B,T,d]
-        blocks_out = self.blocks(self.dropout(X)) # [B,T,d]
+        #blocks_out = self.blocks(self.dropout(X)) # [B,T,d]
+        blocks_out = checkpoint_sequential(self.blocks,len(self.blocks),self.dropout(X),use_reentrant=False) # saves memory by only saving checkpoint activations, when a discarded activation is needed the sub-graph is recomputed from the nearest checkpoint
         logits = self.classification_head(blocks_out) # [B,T,vocab_size]
 
         if targets is None:
             loss = None
         else:
-            logits = logits.view(B*T,vocab_size) # view s.t. each row is a token's vocab scores, for every token in every sequence of the batch
-            targets = targets.view(B*T)
+            logits = logits.view(-1,vocab_size)
+            #logits = logits.view(B*T,vocab_size) # view s.t. each row is a token's vocab scores, for every token in every sequence of the batch
+            #targets = targets.view(B*T)
+            targets = targets.view(-1)
             loss = torch.nn.functional.cross_entropy(logits,targets) # softmax applied in cross_entropy
 
         return logits,loss
@@ -113,17 +119,20 @@ class MultiHeadAttention(torch.nn.Module):
         self.ll = torch.nn.Linear(nh*hd, d, bias=True) # Linear layer for concatenated head output
         self.attn_drop = torch.nn.Dropout(dropout) # weights dropout
         self.proj_drop = torch.nn.Dropout(dropout) # output dropout
+        self.register_buffer("causal_mask",torch.triu(torch.ones(T, T, dtype=torch.bool), 1)) # ensures no new mask copies are created each time, saves memory
 
     def forward(self,X):
+        B_cur,T_cur,_ = X.shape # need to get run-time dims to keep secure during inference when cur sequences and batches < globally defined B and T
         QKV = self.qkv_proj(X) # do QKV linear layer transformation
-        qkv = QKV.view(B,T,nh,3,hd).permute(0,2,1,3,4).contiguous() # group by token 
+        qkv = QKV.view(B_cur,T_cur,nh,3,hd).permute(0,2,1,3,4).contiguous() # group by token 
         
         Q = qkv[:,:,:,0,:] # all Q matrices 
         K = qkv[:,:,:,1,:] # all K matrices 
         V = qkv[:,:,:,2,:] # all V matrices
         
         AM = (Q @ K.transpose(-2,-1)) / sqrt(hd) # attention matrix
-        mask = torch.triu(torch.ones_like(AM),diagonal=1).bool()
+        #mask = torch.triu(torch.ones_like(AM),diagonal=1).bool()
+        mask = self.causal_mask[:T_cur, :T_cur]
         masked_AM = AM.masked_fill(mask,float('-inf')) # masking upper triangle for causal self attention
         attn_weights = torch.nn.functional.softmax(masked_AM,dim=-1) # softmax
         attn_weights = self.attn_drop(attn_weights)
@@ -133,7 +142,7 @@ class MultiHeadAttention(torch.nn.Module):
         out_permute  = out.permute(0,2,1,3).contiguous() # [B,nh,T,hd] --> [B, T, nh, hd]
         if not out_permute.is_contiguous():
             raise Exception('Permuted tensor is not contiguous...')
-        out_heads_concat = out_permute.view(B,T,nh*hd) # [B, T, nh, hd] --> [B,T,nh*hd]
+        out_heads_concat = out_permute.view(B_cur,T_cur,nh*hd) # [B, T, nh, hd] --> [B,T,nh*hd]
         
         self_attention_out = self.ll(out_heads_concat) # [B,T,d]
         return self.proj_drop(self_attention_out) 
@@ -170,19 +179,19 @@ class Block(torch.nn.Module):
 
 ############################################
 
-# TODO: use buffer for masked fill?
-
 @torch.no_grad()
 def estimate_loss():
     out = {}
     model.eval()
     for split in ['train', 'val']:
-        losses = torch.zeros(eval_iters)
+        losses = torch.zeros(eval_iters,device=device)
         for k in range(eval_iters):
             xb, yb = get_batch(split)
             logits, loss = model(xb, yb)
-            losses[k] = loss.item()
-        out[split] = losses.mean()
+            losses[k] = loss.detach() # keep on gpu instead of moving to cpu, more efficient
+            #losses[k] = loss.item()
+        #out[split] = losses.mean()
+        out[split] = losses.mean().item() # single sync for mean loss calculation 
     model.train()
     return out
 
@@ -197,6 +206,8 @@ context = torch.zeros((1, 1), dtype=torch.long, device=device) # [B,T] == [1,1] 
 
 # main training loop
 print("starting training...")
+start_time = time.perf_counter()
+
 for iter in range(max_iters):
 
     #eval train and val loss every once in a while
@@ -204,6 +215,8 @@ for iter in range(max_iters):
         loss_estimates = estimate_loss()
         allocated_mb = torch.cuda.memory_allocated() / (1024**2) # allocated memory by PyTorch tensors in mb
         reserved_mb = torch.cuda.memory_reserved() / (1024**2) # memory reserved by PyTorch's caching allocator in mb
+        print("\n")
+        print("--------------------------------------------------------------")
         print(f"step {iter}: train loss {loss_estimates['train']:.4f}, val loss {loss_estimates['val']:.4f}")
         print(f"gpu memory allocated: {allocated_mb:.2f} mb, gpu memory reserved: {reserved_mb:.2f} mb")
         print(decode(model.generate(context, max_new_tokens=250)[0].tolist())) # generate from model to see intermediate outputs
@@ -214,7 +227,12 @@ for iter in range(max_iters):
     loss.backward() # backprop
     optimizer.step() # gradient descent step
 
+print("\n")
+print("--------------------------------------------------------------")
 print("training done.")
+end_time = time.perf_counter()
+duration_minutes = (end_time - start_time) / 60
+print(f"train time: {duration_minutes:.4f} minutes")
 print(f"max gpu memory allocated during training: {torch.cuda.max_memory_allocated() / (1024**2):.2f} mb")
 print(f"max gpu memory reserved during training: {torch.cuda.max_memory_reserved() / (1024**2):.2f} mb")
 
@@ -224,5 +242,7 @@ formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H-%M-%S") # format to 
 torch.save(model.state_dict(),f"model_{formatted_datetime}.pth")
 
 # generate from model
+print("\n")
+print("--------------------------------------------------------------")
 print(decode(model.generate(context, max_new_tokens=500)[0].tolist()))
 open(f'more_{formatted_datetime}.txt', 'w').write(decode(model.generate(context, max_new_tokens=10000)[0].tolist()))
