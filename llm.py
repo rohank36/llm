@@ -49,7 +49,7 @@ def get_batch(split):
     x = torch.stack([data[i:i+T] for i in ix])
     y = torch.stack([data[i+1:i+T+1] for i in ix]) # Y is same sequence as X just shifted by 1 for next token prediciton and loss calculation
     x, y = x.to(device), y.to(device)
-    return x, y # x and Y are [B,T]
+    return x, y # X and Y are [B,T]
 ################################################
 
 ### Transformer Decoder Code ###################
@@ -69,17 +69,14 @@ class Model(torch.nn.Module):
         pos_emb = self.position_embedding_table(torch.arange(T_cur,device=device)) # get embedding for each token position in idx [B,T]
         # pos emb [T,d]
         X = tok_emb + pos_emb # [B,T,d]
-        #blocks_out = self.blocks(self.dropout(X)) # [B,T,d]
         blocks_out = checkpoint_sequential(self.blocks,len(self.blocks),self.dropout(X),use_reentrant=False) # saves memory by only saving checkpoint activations, when a discarded activation is needed the sub-graph is recomputed from the nearest checkpoint
         logits = self.classification_head(blocks_out) # [B,T,vocab_size]
 
         if targets is None:
             loss = None
         else:
-            logits = logits.view(-1,vocab_size)
-            #logits = logits.view(B*T,vocab_size) # view s.t. each row is a token's vocab scores, for every token in every sequence of the batch
-            #targets = targets.view(B*T)
-            targets = targets.view(-1)
+            logits = logits.view(-1,vocab_size) # [B*T, vocab_size] view s.t. each row is a token's vocab scores, for every token in every sequence of the batch
+            targets = targets.view(-1) # [B*T]
             loss = torch.nn.functional.cross_entropy(logits,targets) # softmax applied in cross_entropy
 
         return logits,loss
@@ -92,7 +89,7 @@ class Model(torch.nn.Module):
             idx_cond = idx[:, -T:] # get last T tokens to use as context to generate next best token
             # recall that since we train the model on sequence length T, when generating we can only generate the next token given the last T tokens
             logits, loss = self(idx_cond)
-            last_token_logits = logits[:,-1,:] # [B,vocab_size] but should always be 1 for generation
+            last_token_logits = logits[:,-1,:] # [B,vocab_size] but should always be B=1 for generation
             probs = torch.nn.functional.softmax(last_token_logits, dim=-1) # create probability distribution for next token [B,vocab_size] 
             idx_next = torch.multinomial(probs, num_samples=1) # sample from the prob dist to get idx of next token [B, 1] 
             idx = torch.cat((idx, idx_next), dim=1) # concat next token context [B, T+1]
@@ -131,7 +128,6 @@ class MultiHeadAttention(torch.nn.Module):
         V = qkv[:,:,:,2,:] # all V matrices
         
         AM = (Q @ K.transpose(-2,-1)) / sqrt(hd) # attention matrix
-        #mask = torch.triu(torch.ones_like(AM),diagonal=1).bool()
         mask = self.causal_mask[:T_cur, :T_cur]
         masked_AM = AM.masked_fill(mask,float('-inf')) # masking upper triangle for causal self attention
         attn_weights = torch.nn.functional.softmax(masked_AM,dim=-1) # softmax
@@ -189,8 +185,6 @@ def estimate_loss():
             xb, yb = get_batch(split)
             logits, loss = model(xb, yb)
             losses[k] = loss.detach() # keep on gpu instead of moving to cpu, more efficient
-            #losses[k] = loss.item()
-        #out[split] = losses.mean()
         out[split] = losses.mean().item() # single sync for mean loss calculation 
     model.train()
     return out
