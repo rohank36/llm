@@ -4,7 +4,7 @@
 
 Implemented a transformer decoder architecture (with some modifications to the decoder presented in the original <i>Attention is all you need</i> paper) using Pytorch.
 
-Trained a 10.8m parameter model (41 MB) on 1.1 million tokens of Shakespeare with 1 x NVIDIA GeForce GTX 1650 using ~1GB/4GB VRAM.
+Trained a 10.8m parameter model (41 MB) on 1.1 million tokens of Shakespeare with 1 x NVIDIA GeForce GTX 1650 GPU using ~1GB/4GB VRAM.
 
 Employed gradient checkpointing to reduce GPU memory consumption during training and optimized Multi-Head Attention by performing Query, Key, and Value projections for all heads simultaneously via single batched transformations, maximizing GPU throughput for training speed.
 
