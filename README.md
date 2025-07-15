@@ -18,7 +18,7 @@ Key Files:
 - `model.pth` - saved model weights
 - `more.txt` - sample model output
 
-Used a character level tokenizer, taken from Andrej Karpathy's implementation: https://github.com/karpathy/ng-video-lecture/blob/master/gpt.py.
+Hyperparameter values and character level tokenizer were taken from Andrej Karpathy's implementation: https://github.com/karpathy/ng-video-lecture/blob/master/gpt.py.
 
 To use: 
 ```
