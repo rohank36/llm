@@ -195,54 +195,54 @@ def estimate_loss():
     model.train()
     return out
 
+if __name__ == "__main__":
+    torch.manual_seed(27)
+    model = Model()
+    model.to(device)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    print(f"{sum(p.numel() for p in model.parameters() if p.requires_grad)} parameters") # print total model parameters 
 
-torch.manual_seed(27)
-model = Model()
-model.to(device)
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-print(f"{sum(p.numel() for p in model.parameters() if p.requires_grad)} parameters") # print total model parameters 
+    context = torch.zeros((1, 1), dtype=torch.long, device=device) # [B,T] == [1,1] Context for generation
 
-context = torch.zeros((1, 1), dtype=torch.long, device=device) # [B,T] == [1,1] Context for generation
+    # main training loop
+    print("starting training...")
+    start_time = time.perf_counter()
 
-# main training loop
-print("starting training...")
-start_time = time.perf_counter()
+    for iter in range(max_iters):
 
-for iter in range(max_iters):
+        #eval train and val loss every once in a while
+        if iter % eval_interval == 0 or iter == max_iters-1:
+            loss_estimates = estimate_loss()
+            allocated_mb = torch.cuda.memory_allocated() / (1024**2) # allocated memory by PyTorch tensors in mb
+            reserved_mb = torch.cuda.memory_reserved() / (1024**2) # memory reserved by PyTorch's caching allocator in mb
+            print("\n")
+            print("--------------------------------------------------------------")
+            print(f"step {iter}: train loss {loss_estimates['train']:.4f}, val loss {loss_estimates['val']:.4f}")
+            print(f"gpu memory allocated: {allocated_mb:.2f} mb, gpu memory reserved: {reserved_mb:.2f} mb")
+            print(decode(model.generate(context, max_new_tokens=250)[0].tolist())) # generate from model to see intermediate outputs
 
-    #eval train and val loss every once in a while
-    if iter % eval_interval == 0 or iter == max_iters-1:
-        loss_estimates = estimate_loss()
-        allocated_mb = torch.cuda.memory_allocated() / (1024**2) # allocated memory by PyTorch tensors in mb
-        reserved_mb = torch.cuda.memory_reserved() / (1024**2) # memory reserved by PyTorch's caching allocator in mb
-        print("\n")
-        print("--------------------------------------------------------------")
-        print(f"step {iter}: train loss {loss_estimates['train']:.4f}, val loss {loss_estimates['val']:.4f}")
-        print(f"gpu memory allocated: {allocated_mb:.2f} mb, gpu memory reserved: {reserved_mb:.2f} mb")
-        print(decode(model.generate(context, max_new_tokens=250)[0].tolist())) # generate from model to see intermediate outputs
+        xb,yb = get_batch('train')
+        logits,loss = model(xb,yb)
+        optimizer.zero_grad(set_to_none=True) # set_to_none=True saves some memory
+        loss.backward() # backprop
+        optimizer.step() # gradient descent step
 
-    xb,yb = get_batch('train')
-    logits,loss = model(xb,yb)
-    optimizer.zero_grad(set_to_none=True) # set_to_none=True saves some memory
-    loss.backward() # backprop
-    optimizer.step() # gradient descent step
+    print("\n")
+    print("--------------------------------------------------------------")
+    print("training done.")
+    end_time = time.perf_counter()
+    duration_minutes = (end_time - start_time) / 60
+    print(f"train time: {duration_minutes:.4f} minutes")
+    print(f"max gpu memory allocated during training: {torch.cuda.max_memory_allocated() / (1024**2):.2f} mb")
+    print(f"max gpu memory reserved during training: {torch.cuda.max_memory_reserved() / (1024**2):.2f} mb")
 
-print("\n")
-print("--------------------------------------------------------------")
-print("training done.")
-end_time = time.perf_counter()
-duration_minutes = (end_time - start_time) / 60
-print(f"train time: {duration_minutes:.4f} minutes")
-print(f"max gpu memory allocated during training: {torch.cuda.max_memory_allocated() / (1024**2):.2f} mb")
-print(f"max gpu memory reserved during training: {torch.cuda.max_memory_reserved() / (1024**2):.2f} mb")
+    # save model state 
+    current_datetime = datetime.datetime.now()
+    formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H-%M-%S") # format to 'YYYY-MM-DD_HH-MM-SS'
+    torch.save(model.state_dict(),f"model_{formatted_datetime}.pth")
 
-# save model state 
-current_datetime = datetime.datetime.now()
-formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H-%M-%S") # format to 'YYYY-MM-DD_HH-MM-SS'
-torch.save(model.state_dict(),f"model_{formatted_datetime}.pth")
-
-# generate from model
-print("\n")
-print("--------------------------------------------------------------")
-print(decode(model.generate(context, max_new_tokens=500)[0].tolist()))
-open(f'more_{formatted_datetime}.txt', 'w').write(decode(model.generate(context, max_new_tokens=10000)[0].tolist()))
+    # generate from model
+    print("\n")
+    print("--------------------------------------------------------------")
+    print(decode(model.generate(context, max_new_tokens=500)[0].tolist()))
+    open(f'more_{formatted_datetime}.txt', 'w').write(decode(model.generate(context, max_new_tokens=10000)[0].tolist()))
