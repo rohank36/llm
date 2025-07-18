@@ -18,7 +18,7 @@ Key Files:
 - `model.pth` - saved model weights
 - `more.txt` - sample model output
 
-Hyperparameter values and character level tokenizer were taken from Andrej Karpathy's implementation: https://github.com/karpathy/ng-video-lecture/blob/master/gpt.py.
+Hyperparameter values, tokenizer, and generate function were taken from Andrej Karpathy's implementation: https://github.com/karpathy/ng-video-lecture/blob/master/gpt.py. The core decoder implementation is my own with no AI code gen.
 
 To use: 
 ```
