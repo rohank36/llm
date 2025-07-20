@@ -8,7 +8,7 @@ Trained a 10.8m parameter model (41 MB) on 1.1 million tokens of Shakespeare wit
 
 Employed gradient checkpointing to reduce GPU memory consumption during training and optimized Multi-Head Attention by performing Query, Key, and Value projections for all heads simultaneously via single batched transformations, maximizing GPU throughput for training speed.
 
-Training time was ~2.5 hours over 5000 epochs with Cross Entropy loss function and AdamW optimizer:
+Training time was ~2.5 hours over 5000 iterations with Cross Entropy loss function and AdamW optimizer:
 
 ![Training and Validation Loss Plot](loss_plot.png)
 
